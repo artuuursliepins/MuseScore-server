@@ -7,10 +7,7 @@ RUN ln -fs /usr/share/zoneinfo/$TZ /etc/localtime && \
     apt-get update && \
     apt-get install -y tzdata && \
     echo $TZ > /etc/timezone
-
-# Izmantojam Ubuntu kā bāzi
-FROM ubuntu:20.04
-
+    
 # Atjauninām pakotnes un instalējam MuseScore
 RUN apt-get update && apt-get install -y musescore3 xvfb
 
