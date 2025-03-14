@@ -1,30 +1,32 @@
-# Izmanto Ubuntu kā bāzi
+# Izmanto oficiālo Ubuntu kā bāzi
 FROM ubuntu:22.04
 
-# Iestatām, lai instalācijas laikā nepieprasītu ievadi
-ENV DEBIAN_FRONTEND=noninteractive
+# Izveidojam lietotāju (drošībai)
+RUN useradd -m appuser
 
-# Atjauninām pakotnes un instalējam MuseScore un nepieciešamos rīkus
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    musescore3 \
+# Instalējam nepieciešamās pakotnes
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     python3 \
     python3-pip \
-    xvfb \
-    tzdata && \
+    tzdata \
+    curl \
+    wget && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Iestatām darba mapi
+# Iestatām darba mapi un kopējam failus
 WORKDIR /app
+COPY --chown=appuser:appuser . /app
 
-# Kopējam kodu repozitorijā (pārliecinies, ka failus ir ko kopēt!)
-COPY . /app
+# Pārejam uz non-root lietotāju
+USER appuser
 
-# Instalējam Python atkarības
-RUN if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi
+# Instalējam atkarības
+RUN pip3 install --no-cache-dir -r requirements.txt && pip3 install gunicorn
 
-# Norādām, ka jāpievieno 8080 ports
+# Atveram 8080 portu
 EXPOSE 8080
 
-# Palaiž Flask API serveri
-CMD ["python3", "app.py"]
+# Palaižam Flask API ar `gunicorn`
+CMD ["gunicorn", "--workers", "4", "--bind", "0.0.0.0:8080", "app:app"]
 
