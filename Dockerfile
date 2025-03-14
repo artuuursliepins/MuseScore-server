@@ -1,29 +1,30 @@
 # Izmanto Ubuntu kā bāzi
 FROM ubuntu:22.04
 
-# Iestatām, lai laika josla netiktu interaktīvi pieprasīta
+# Iestatām, lai instalācijas laikā nepieprasītu ievadi
 ENV DEBIAN_FRONTEND=noninteractive
-ENV REGION=Europe  # <- ŠEIT BIJA PROBLĒMA (Noņemts komentārs no rindas)
 
 # Atjauninām pakotnes un instalējam MuseScore un nepieciešamos rīkus
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     musescore3 \
     python3 \
     python3-pip \
     xvfb \
-    tzdata
+    tzdata && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Iestatām darba mapi
 WORKDIR /app
 
-# Kopējam kodu repozitorijā
+# Kopējam kodu repozitorijā (pārliecinies, ka failus ir ko kopēt!)
 COPY . /app
 
 # Instalējam Python atkarības
-RUN pip3 install -r requirements.txt
+RUN if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi
 
 # Norādām, ka jāpievieno 8080 ports
 EXPOSE 8080
 
 # Palaiž Flask API serveri
 CMD ["python3", "app.py"]
+
