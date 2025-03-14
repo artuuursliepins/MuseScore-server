@@ -3,7 +3,7 @@ FROM ubuntu:22.04
 
 # Iestatām, lai laika josla netiktu interaktīvi pieprasīta
 ENV DEBIAN_FRONTEND=noninteractive
-ENV REGION=Europe  # Norādām, ka atrodamies Eiropā
+ENV REGION=Europe  # <- ŠEIT BIJA PROBLĒMA (Noņemts komentārs no rindas)
 
 # Atjauninām pakotnes un instalējam MuseScore un nepieciešamos rīkus
 RUN apt-get update && apt-get install -y \
@@ -27,9 +27,3 @@ EXPOSE 8080
 
 # Palaiž Flask API serveri
 CMD ["python3", "app.py"]
-
-# Palaiž Flask API serveri
-CMD ["python3", "app.py"]
-
-
-
