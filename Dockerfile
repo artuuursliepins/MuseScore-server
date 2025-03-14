@@ -1,15 +1,20 @@
-# Izmanto Ubuntu kā pamata sistēmu
+# Izmanto Ubuntu kā bāzi
 FROM ubuntu:22.04
 
-# Iestata laika joslu, lai izvairītos no interaktīvas izvēles
-ENV TZ=Europe/Riga
-RUN ln -fs /usr/share/zoneinfo/$TZ /etc/localtime && \
-    apt-get update && \
-    apt-get install -y tzdata && \
-    echo $TZ > /etc/timezone
-    
-# Atjauninām pakotnes un instalējam MuseScore
-RUN apt-get update && apt-get install -y musescore3 xvfb
+# Iestatām, lai laika josla netiktu interaktīvi pieprasīta
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Izveidojam laika joslas simbolisko saiti uz noklusēto servera laiku
+RUN ln -sf /usr/share/zoneinfo/Etc/UTC /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata
+
+# Atjauninām pakotnes un instalējam MuseScore un nepieciešamos rīkus
+RUN apt-get update && apt-get install -y \
+    musescore3 \
+    python3 \
+    python3-pip \
+    xvfb \
+    tzdata
 
 # Iestatām darba mapi
 WORKDIR /app
@@ -17,7 +22,14 @@ WORKDIR /app
 # Kopējam kodu repozitorijā
 COPY . /app
 
-# Norādām noklusējuma komandu, lai serveris vienmēr paliktu dzīvs
-CMD ["tail", "-f", "/dev/null"]
+# Instalējam Python atkarības
+RUN pip3 install -r requirements.txt
+
+# Norādām, ka jāpievieno 8080 ports
+EXPOSE 8080
+
+# Palaiž Flask API serveri
+CMD ["python3", "app.py"]
+
 
 
